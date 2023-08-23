@@ -5,7 +5,14 @@ If you have any issues, please feel free to open an issue on the Github reposito
 """
 
 # Imports
-import app
+from enum import Enum, auto
 
-# Main
-app.app(dev=True)
+class LogLevel(Enum):
+    """
+    Log level enum.
+    """
+    DEBUG = auto()
+    INFO = auto()
+    WARNING = auto()
+    ERROR = auto()
+    CRITICAL = auto()

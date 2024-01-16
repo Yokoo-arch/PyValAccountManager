@@ -1,27 +1,41 @@
-"""
-Wrote by Yokoo-arch 2023 (https://github.com/Yokoo-arch).
-Github repository: https://github.com/Yokoo-arch/PyValAccountManager.
-If you have any issues, please feel free to open an issue on the Github repository.
-"""
-
 # Imports
 import argparse
 import dotenv
-import pymongo
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 import os
-import getpass
 from utility.log_config import logger
 from utility.log_level import LogLevel
 
-class app:
-    def __init__(self, dev:bool) -> None:
+class App:
+    def __init__(self, dev_mode:bool) -> None:
         """
         App class initialization function.
         """
-        self.dev = dev #Extensive debuging information
+        self.dev_mode = dev_mode #Extensive debuging information
+        
+        if self.dev_mode == False:
+            logger.error("Dev mode isn't enabled, so you don't have acces to extensive debugging.")
+        
+        # Loading .env configuration file
         dotenv.load_dotenv()
         self.uri = os.getenv("MONGODB_URI")
-        self.dev_mode_log(f"MongoDB URI: {self.uri}", LogLevel.DEBUG) #Need to remove this line (because of security issue, showing username + password for mongodb connection uri)
+        self.dev_log(f"MongoDB URI: {self.uri}") #Need to remove this line (because of security issue, showing username + password for mongodb connection uri)
+        self.mongoClient = MongoClient(self.uri, server_api=ServerApi('1'))
+        self.check_connection_to_db()
+    
+    def check_connection_to_db(self) -> bool:
+        """
+        Check the connection to the MongoDB database.
+        """
+        try:
+            self.mongoClient.server_info()
+            logger.info("Connected to MongoDB successfully.")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to connect to MongoDB: {e}")
+            return False
+            
     
     def parse_args(self) -> argparse.Namespace:
         """
@@ -56,21 +70,15 @@ class app:
         """
         pass
 
-    def dev_mode_log(self, message:str, log_level:LogLevel = LogLevel.INFO) -> None:
-        """
-        Extensive debugging information if dev mode is enabled.
-        """
-        if self.dev:
-            match log_level:
-                case LogLevel.DEBUG:
-                    logger.debug(message)
-                case LogLevel.INFO:
-                    logger.info(message)
-                case LogLevel.WARNING:
-                    logger.warning(message)
-                case LogLevel.ERROR:
-                    logger.error(message)
-                case LogLevel.CRITICAL:
-                    logger.critical(message)
-        else:
-            logger.error("Dev mode isn't enabled, so you don't have acces to extensive debugging.")
+    def dev_log(self, msg: str) -> None:
+            """
+            Log specified message if dev mode is enabled.
+
+            Parameters:
+            - msg (str): The message to log.
+
+            Returns:
+            None
+            """
+            if self.dev_mode:
+                logger.debug(msg)

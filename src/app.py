@@ -35,7 +35,6 @@ class App:
         except Exception as e:
             logger.error(f"Failed to connect to MongoDB: {e}")
             return False
-            
     
     def parse_args(self) -> argparse.Namespace:
         """

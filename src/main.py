@@ -7,11 +7,10 @@ If you have any issues, please feel free to open an issue on the Github reposito
 # Imports
 import app
 import utility.mock as mock
-
+import utility.db as DBUtility
 # Main
 App =app.App(dev_mode=True)
 Mock = mock.MockData(dev_mode=True)
+DBUtil = DBUtility.DataBaseUtility(App.mongoClient, dev_mode=True)
 
-for _ in range(5):
-    Mock.generate_username()
-    Mock.generate_password()
+DBUtil.push_mock_data(10)

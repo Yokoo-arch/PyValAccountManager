@@ -30,6 +30,7 @@ class MockData:
         """
         username = f"{self.username_base}-{self.generate_token(self.username_token_size)}"
         self.dev_log(f"Username: {username}")
+        return username
     
     def generate_password(self) -> str:
         """
@@ -42,6 +43,45 @@ class MockData:
         self.dev_log(f"Password: {password}")
         return password
 
+    def generate_ign(self) -> str:
+        """
+        Generate a random IGN
+
+        Returns:
+            str: IGN
+        """
+        char_list = string.digits
+        tag = ''.join(random.choice(char_list) for _ in range(4))
+        username = f"D01#{tag}"
+        self.dev_log(f"IGN: {username}")
+        return username
+
+    def genereate_rank(self) -> str:
+        """
+        Generate a random rank
+
+        Returns:
+            str: Rank
+        """
+        ranks = {
+            "Iron":[1,2,3],
+            "Bronze":[1,2,3],
+            "Silver":[1,2,3],
+            "Gold":[1,2,3],
+            "Platinum":[1,2,3],
+            "Diamond":[1,2,3],
+            "Ascendant":[1,2,3],
+            "Immortal":[1,2,3],
+            "Radiant":[1]
+        }
+    
+        rank = random.choice(list(ranks))
+        subrank = random.choice(list(ranks[str(rank)]))
+        if rank=="Radiant":
+            return rank
+        else:
+            return f"{rank} {subrank}"
+    
     def dev_log(self, msg: str) -> None:
             """
             Log specified message if dev mode is enabled.

@@ -63,24 +63,18 @@ class MockData:
         Returns:
             str: Rank
         """
-        ranks = {
-            "Iron":[1,2,3],
-            "Bronze":[1,2,3],
-            "Silver":[1,2,3],
-            "Gold":[1,2,3],
-            "Platinum":[1,2,3],
-            "Diamond":[1,2,3],
-            "Ascendant":[1,2,3],
-            "Immortal":[1,2,3],
-            "Radiant":[1]
-        }
+        ranks = ["Iron", "Bronze", "Silver", "Gold", "Platinum", "Ascendant", "Immortal", "Radiant"]
     
-        rank = random.choice(list(ranks))
-        subrank = random.choice(list(ranks[str(rank)]))
-        if rank=="Radiant":
-            return rank
-        else:
-            return f"{rank} {subrank}"
+        return random.choice(ranks)
+
+    def generate_divison(self) -> str:
+        """
+        Genrate a random divison
+
+        Returns:
+            str: Division
+        """
+        return str(random.randint(1, 3))
     
     def dev_log(self, msg: str) -> None:
             """

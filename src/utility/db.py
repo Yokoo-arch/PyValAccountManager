@@ -83,16 +83,23 @@ class DataBaseUtility:
 
         Args:
             is_mock (bool, optional): test datas? Defaults to False.
-            datas (str, str, str, str, optional): datas needed to create a document (only for non mock document)
+            datas (str, str, str, str, str, optional): datas needed to create a document (only for non mock document)
 
         Returns:
             dict[str, str]: the document
         """
         if is_mock == True:
+            division = self.mock.generate_divison()
+            rank = self.mock.genereate_rank()
+            
+            if rank.lower() == "randiant":
+                division = None
+            
             document = {
                 "username":self.mock.generate_username(),
                 "password":self.mock.generate_password(),
-                "rank":self.mock.genereate_rank(),
+                "rank":rank.lower(),
+                "division":division,
                 "ign":self.mock.generate_ign(),
                 "is_mock":is_mock
             }
@@ -101,7 +108,8 @@ class DataBaseUtility:
                 "username":datas[0],
                 "password":datas[1],
                 "rank":datas[2],
-                "ign":datas[3],
+                "division":datas[3],
+                "ign":datas[4],
                 "is_mock":is_mock
             }
         return document
@@ -119,7 +127,7 @@ class DataBaseUtility:
         try:
             datas = []
             for _ in range(ammount):
-                datas.append(self.__generate_document__(is_mock=True))
+                datas.append(self.__generate_document__(None, is_mock=True))
             self.collection.insert_many(datas)
             self.dev_log(f"Inserted {len(datas)} documents to {self.collection.name}")
         except Exception as e:

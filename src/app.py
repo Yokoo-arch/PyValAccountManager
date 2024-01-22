@@ -1,5 +1,4 @@
 # Imports
-import argparse
 from utility.log_config import logger
 from utility.db import DataBaseUtility
 class App:
@@ -14,38 +13,32 @@ class App:
         
         self.DBUtil = DBUtil
     
-    def parse_args(self) -> argparse.Namespace:
+    def add_accounts_from_file(self, filename:str) -> None:
         """
-        Parse the CLI arguments.
+        Add accounts to the database from a file.
+
+        The file should have one account per line, with each part of the account
+        separated by a colon (e.g. "username:password:rank:division:ign").
+
+        Args:
+            filename (str): The name of the file to read from.
+
+        Returns:
+            None
         """
-        argparser = argparse.ArgumentParser()
-        
-        argparser.add_argument("-a", "--add",
-                               dest="add",
-                               action="store_true",
-                               help="Add a new account to the account manager.")
-        argparser.add_argument("-r", "--remove",
-                               dest="remove",
-                               action="store_true",
-                               help="Remove an existing account from the account manager.")
-        argparser.add_argument("-l", "--list",
-                               dest="list",
-                               action="store_true",
-                               help="List all accounts in the account manager.")
-    
-        self.options = argparser.parse_args()
-
-        # Check if at least one mode option is provided
-        if not any([self.options.add, self.options.remove, self.options.list]):
-            argparser.error("Please provide at least one mode option. Type -h or --help for more information.")
-
-        return self.options
-    
-    def add_account(self, username:str, password:str, rank:str, ign: str) -> None:
+        with open(filename, "r") as f:
+            for line in f:
+                parts = line.strip().split(":")
+                if len(parts) == 5:
+                    self.add_account(parts[0], parts[1], parts[2], parts[3], parts[4])
+                else:
+                    logger.warning(f"Ignoring line with incorrect number of parts: {line}")
+                    
+    def add_account(self, username:str, password:str, rank:str, divison:str, ign: str) -> None:
         """
         Add a new account to the account manager.
         """
-        doc = self.DBUtil.__generate_document__([username, password, rank, ign])
+        doc = self.DBUtil.__generate_document__([username, password, rank, divison, ign])
         self.DBUtil.push_documents([doc])
 
     def remove_account(self, username:str) -> bool:
@@ -84,6 +77,22 @@ class App:
         
         return accounts
 
+    def list_account_rank(self, rank:str) -> list:
+        """
+        List all the accounts that have a certain rank
+
+        Args:
+            rank (str): The rank
+
+        Returns:
+            list: accounts list
+        """
+        accounts = []
+        cursor = self.DBUtil.collection.find({"rank": rank})
+        for document in cursor:
+            accounts.append(document)
+        
+        return accounts
     def dev_log(self, msg: str) -> None:
             """
             Log specified message if dev mode is enabled.

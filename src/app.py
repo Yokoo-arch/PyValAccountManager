@@ -1,19 +1,30 @@
-# Imports
+"""
+Module for the App class.
+"""
+
 from utility.log_config import logger
 from utility.db import DataBaseUtility
+
 class App:
-    def __init__(self, dev_mode:bool, DBUtil:DataBaseUtility) -> None:
+    """
+    Class for managing accounts and interacting with the database.
+    """
+
+    def __init__(self, dev_mode: bool, db_util: DataBaseUtility) -> None:
         """
-        App class initialization function.
+        Initialize a new instance of the App class.
+
+        Args:
+            dev_mode (bool): Enable or disable development mode.
+            db_util (DataBaseUtility): An instance of the DataBaseUtility class.
         """
-        self.dev_mode = dev_mode #Extensive debuging information
-        
-        if self.dev_mode == False:
-            logger.error("Dev mode isn't enabled, so you don't have acces to extensive debugging.")
-        
-        self.DBUtil = DBUtil
-    
-    def add_accounts_from_file(self, filename:str) -> None:
+        self.dev_mode = dev_mode
+        self.DBUtil = db_util
+
+        if not self.dev_mode:
+            logger.error("Dev mode isn't enabled, so you don't have access to extensive debugging.")
+
+    def add_accounts_from_file(self, filename: str) -> None:
         """
         Add accounts to the database from a file.
 
@@ -30,78 +41,83 @@ class App:
             for line in f:
                 parts = line.strip().split(":")
                 if len(parts) == 5:
-                    self.add_account(parts[0], parts[1], parts[2], parts[3], parts[4])
+                    self.add_account(*parts)
                 else:
                     logger.warning(f"Ignoring line with incorrect number of parts: {line}")
-                    
-    def add_account(self, username:str, password:str, rank:str, divison:str, ign: str) -> None:
+
+    def add_account(self, username: str, password: str, rank: str, division: str, ign: str) -> None:
         """
         Add a new account to the account manager.
         """
-        doc = self.DBUtil.__generate_document__([username, password, rank, divison, ign])
-        self.DBUtil.push_documents([doc])
+        document = self.DBUtil.__generate_document__([username, password, rank, division, ign])
+        self.DBUtil.push_documents([document])
 
-    def remove_account(self, username:str) -> bool:
+    def remove_account(self, username: str) -> bool:
         """
-        Remove an account from the db
+        Remove an account from the database.
 
         Args:
-            username (str): the filter
+            username (str): The username of the account to remove.
 
         Returns:
-            bool:
+            bool: True if the account was removed, False otherwise.
         """
         try:
-            if  self.DBUtil.collection.count_documents({"username": username}) > 1:
-                self.DBUtil.collection.delete_many({"username": username})
+            count = self.DBUtil.collection.count_documents({"username": username})
+            if count > 0:
+                if count > 1:
+                    self.DBUtil.collection.delete_many({"username": username})
+                else:
+                    self.DBUtil.collection.delete_one({"username": username})
+                return True
             else:
-                self.DBUtil.collection.delete_one({"username": username})
-                
-            return True
+                logger.warning(f"No account found with username '{username}'")
         except Exception as e:
-            self.logger.error("An error occured while trying to get the database.")
+            logger.error("An error occurred while trying to get the database.")
             print(e)
-            return False
-    
-    def list_account(self) -> list:
+
+        return False
+
+    def list_accounts(self) -> list:
         """
-        List all the accounts in the db
+        List all the accounts in the database.
 
         Returns:
-            list: accounts list
+            list: A list of account dictionaries.
         """
         accounts = []
         cursor = self.DBUtil.collection.find({})
         for document in cursor:
             accounts.append(document)
-        
+
         return accounts
 
-    def list_account_rank(self, rank:str) -> list:
+    def list_accounts_by_rank(self, rank: str) -> list:
         """
-        List all the accounts that have a certain rank
+        List all the accounts that have a certain rank.
 
         Args:
-            rank (str): The rank
+            rank (str): The rank of the accounts to list.
 
         Returns:
-            list: accounts list
+            list: A list of account dictionaries.
         """
         accounts = []
         cursor = self.DBUtil.collection.find({"rank": rank})
         for document in cursor:
             accounts.append(document)
-        
+
         return accounts
+
     def dev_log(self, msg: str) -> None:
-            """
-            Log specified message if dev mode is enabled.
+        """
+        Log specified message if dev mode is enabled.
 
-            Parameters:
-            - msg (str): The message to log.
+        Args:
+            msg (str): The message to log.
 
-            Returns:
+        Returns:
             None
-            """
-            if self.dev_mode:
-                logger.debug(msg)
+        """
+        if self.dev_mode:
+            logger.debug(msg)

@@ -17,7 +17,7 @@ pip install -r requirements.txt
 To use PyValAccountManager, run the following command:
 
 ```
-python main.py
+python src/main.py
 ```
 
 This will launch the main menu, which provides the following options:

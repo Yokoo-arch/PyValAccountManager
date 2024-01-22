@@ -1,14 +1,9 @@
 # Imports
 import argparse
-import dotenv
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-import os
 from utility.log_config import logger
-from utility.log_level import LogLevel
-
+from utility.db import DataBaseUtility
 class App:
-    def __init__(self, dev_mode:bool) -> None:
+    def __init__(self, dev_mode:bool, DBUtil:DataBaseUtility) -> None:
         """
         App class initialization function.
         """
@@ -17,24 +12,7 @@ class App:
         if self.dev_mode == False:
             logger.error("Dev mode isn't enabled, so you don't have acces to extensive debugging.")
         
-        # Loading .env configuration file
-        dotenv.load_dotenv()
-        self.uri = os.getenv("MONGODB_URI")
-        self.dev_log(f"MongoDB URI: {self.uri}") #Need to remove this line (because of security issue, showing username + password for mongodb connection uri)
-        self.mongoClient = MongoClient(self.uri, server_api=ServerApi('1'))
-        self.check_connection_to_db()
-    
-    def check_connection_to_db(self) -> bool:
-        """
-        Check the connection to the MongoDB database.
-        """
-        try:
-            self.mongoClient.server_info()
-            logger.info("Connected to MongoDB successfully.")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
-            return False
+        self.DBUtil = DBUtil
     
     def parse_args(self) -> argparse.Namespace:
         """
@@ -63,11 +41,48 @@ class App:
 
         return self.options
     
-    def add_account(self) -> None:
+    def add_account(self, username:str, password:str, rank:str, ign: str) -> None:
         """
         Add a new account to the account manager.
         """
-        pass
+        doc = self.DBUtil.__generate_document__([username, password, rank, ign])
+        self.DBUtil.push_documents([doc])
+
+    def remove_account(self, username:str) -> bool:
+        """
+        Remove an account from the db
+
+        Args:
+            username (str): the filter
+
+        Returns:
+            bool:
+        """
+        try:
+            if  self.DBUtil.collection.count_documents({"username": username}) > 1:
+                self.DBUtil.collection.delete_many({"username": username})
+            else:
+                self.DBUtil.collection.delete_one({"username": username})
+                
+            return True
+        except Exception as e:
+            self.logger.error("An error occured while trying to get the database.")
+            print(e)
+            return False
+    
+    def list_account(self) -> list:
+        """
+        List all the accounts in the db
+
+        Returns:
+            list: accounts list
+        """
+        accounts = []
+        cursor = self.DBUtil.collection.find({})
+        for document in cursor:
+            accounts.append(document)
+        
+        return accounts
 
     def dev_log(self, msg: str) -> None:
             """

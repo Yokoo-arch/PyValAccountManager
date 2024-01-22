@@ -8,9 +8,8 @@ If you have any issues, please feel free to open an issue on the Github reposito
 import app
 import utility.mock as mock
 import utility.db as DBUtility
-# Main
-App =app.App(dev_mode=True)
-Mock = mock.MockData(dev_mode=True)
-DBUtil = DBUtility.DataBaseUtility(App.mongoClient, dev_mode=True)
 
-DBUtil.push_mock_data(10)
+# Main
+DBUtil = DBUtility.DataBaseUtility(dev_mode=True)
+App =app.App(dev_mode=True, DBUtil=DBUtil)
+
